@@ -117,7 +117,6 @@ st.title("⚔️ Legendary Loot Generator")
 
 level = st.number_input("Character Level", min_value=1, value=1, step=1)
 budget = 100 * (2 ** (level - 1))
-st.caption(f"Power Budget: **{budget:,}g**")
 
 if st.button("Generate Loot", type="primary", use_container_width=True):
     d66 = (random.randint(1, 6), random.randint(1, 6))
