@@ -134,8 +134,8 @@ def get_gold_result(dice, level):
     return f"💰 **{base * level:,} Gold** \n({base} on {active_dice} × Lvl {level})"
 
 # --- App Interface ---
-st.set_page_config(page_title="Vault of the Weird", page_icon="🔮")
-st.title("🔮 Vault of the Weird")
+st.set_page_config(page_title="NoseKnowsLoot", page_icon="🔮")
+st.title("NoseKnowsLoot")
 
 level = st.number_input("Character Level", min_value=1, value=1)
 budget = 100 * (2 ** (level - 1))
