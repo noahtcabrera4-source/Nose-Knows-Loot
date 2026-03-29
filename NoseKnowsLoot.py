@@ -160,7 +160,7 @@ if st.button("Roll for Loot", type="primary", use_container_width=True):
 
     elif d66[0] == 3:
         if d66[1] <= 3: item, category = random.choice(["Spear", "Longsword", "Greatsword", "Tower Shield"]), "W"
-        elif d66[1] <= 5: item, category = "Arcane Trinket", "C"
+        elif d66[1] <= 5: item, category = "Arcane Trinket", "G"
         else: item = get_gold_result("10d10", level)
 
     elif d66[0] == 4:
@@ -177,7 +177,7 @@ if st.button("Roll for Loot", type="primary", use_container_width=True):
             num_spells = math.ceil(level / 2)
             item = f"📖 Spellbook ({', '.join(random.sample(SPELLS, num_spells))})"
         elif d66[1] == 3: item, category = "Gold Medallion", "C"
-        elif d66[1] in [4, 5]: item, category = "Mystic Trinket", "C"
+        elif d66[1] in [4, 5]: item, category = "Mystic Trinket", "G"
         else: item = get_gold_result("2d1000", level)
 
     else:
