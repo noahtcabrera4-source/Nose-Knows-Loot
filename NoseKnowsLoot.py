@@ -163,6 +163,3 @@ if st.button("Roll for Loot", type="primary", use_container_width=True):
         st.markdown(f"**Final Value:** `{pc + cc:,}g` / Budget: `{budget:,}g`")
     else:
         st.subheader(item)
-        st.markdown(f"**Final Market Value:** `{pc + cc:,}g` / Budget: `{budget:,}g`")
-    else:
-        st.subheader(item)
