@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import math
 
-# --- Data Tables (Same as before) ---
+# --- Data Tables ---
 SPELLS = [
     "Adhere (Acid)", "Amplify", "Animate", "Apoplex (Fire)", "Aqua", "Babble", "Beast", "Bless", "Blink",
     "Burn (Fire)", "Charm", "Color", "Confuse", "Control", "Cure", "Disintegrate (Shock)", "Dispel",
@@ -84,7 +84,7 @@ def generate_scroll(level):
     eff_str = "Effect" if (not has_dmg or effect_mana > 0) else ""
     
     parts = [p for p in [d_str, dmg_str, eff_str] if p]
-    return f"Scroll, {spell} ({', '.join(parts)}) [Total Mana: {total_mana}]"
+    return f"📜 Scroll: {spell} ({', '.join(parts)})"
 
 def get_power_for_level(level):
     target_gold = 100 * (2 ** (level - 1))
@@ -100,65 +100,89 @@ def get_power_for_level(level):
                 break
     return p_name, p_cost, c_name, c_val
 
+def get_gold_result(dice, level):
+    # Rule: 2d1000 is locked to level 5+. Downgrade to 5d100 if lower.
+    active_dice = dice
+    if dice == "2d1000" and level < 5:
+        active_dice = "5d100"
+        st.toast("Jackpot downgraded: 2d1000 locked until Level 5!")
+        
+    base = roll(active_dice)
+    total = base * level
+    return f"💰 **{total:,} Gold** \n({base} rolled on {active_dice} × Lvl {level})"
+
 # --- App Interface ---
-st.title("🎲 Legendary Loot Generator")
+st.set_page_config(page_title="Loot Gen", page_icon="⚔️")
+st.title("⚔️ Legendary Loot Generator")
 
 level = st.number_input("Character Level", min_value=1, value=1, step=1)
 budget = 100 * (2 ** (level - 1))
-st.caption(f"Current Gold Budget for Level {level}: **{budget:,}g**")
+st.caption(f"Power Budget: **{budget:,}g**")
 
-if st.button("Roll Loot"):
+if st.button("Generate Loot", type="primary", use_container_width=True):
     d66 = (random.randint(1, 6), random.randint(1, 6))
     item = ""
     is_eq = False
     
-    # Selection logic
+    # Logic overhaul: Removed common clothes/mundane items
     if d66[0] == 1:
         if d66[1] <= 3: item, is_eq = random.choice(["Handaxe", "Battleaxe", "Greataxe", "Shortbow", "Longbow", "Gauntlet"]), True
         elif d66[1] == 4: item, is_eq = "Light Armor", True
-        else: 
-            r = roll('d100')
-            item = f"💰 **{r * level:,} Gold** ({r} rolled × Lvl {level})"
+        else: item = get_gold_result("10d10", level)
+
     elif d66[0] == 2:
-        if d66[1] <= 3: item, is_eq = random.choice(["Crossbow", "Firearm", "Warhammer", "Mace"]), True
+        if d66[1] <= 3: item, is_eq = random.choice(["Hand Crossbow", "Handgun", "Rifle", "Shotgun", "Warhammer"]), True
         elif d66[1] == 4: item, is_eq = "Leather Satchel", True
         elif d66[1] == 5: item, is_eq = "Medium Armor", True
-        else: 
-            r = roll('d1000')
-            item = f"💰 **{r * level:,} Gold** ({r} rolled × Lvl {level})"
+        else: item = get_gold_result("5d100", level)
+
     elif d66[0] == 3:
-        if d66[1] <= 3: item, is_eq = random.choice(["Spear", "Longsword", "Greatsword", "Shield"]), True
-        elif d66[1] <= 5: item, is_eq = "Trinket", True
-        else: 
-            r = roll('5d10')
-            item = f"💰 **{r * level:,} Gold** ({r} rolled × Lvl {level})"
+        if d66[1] <= 3: item, is_eq = random.choice(["Spear", "Staff", "Longsword", "Greatsword", "Standard Shield"]), True
+        elif d66[1] <= 5: item, is_eq = "Arcane Trinket", True
+        else: item = get_gold_result("10d10", level)
+
     elif d66[0] == 4:
-        if d66[1] == 2: item = generate_scroll(level)
+        if d66[1] == 1: item, is_eq = random.choice(["Lute", "Sacbut", "Lyre"]), True
+        elif d66[1] == 2: item = generate_scroll(level)
+        elif d66[1] == 3: item, is_eq = "Heavy Cloak", True
         elif d66[1] == 4: item = f"✨ Pixie Dust (d{random.randint(1,4)} doses)"
-        elif d66[1] == 6: item, is_eq = "Heavy Armor", True
-        else: item = "Utility Gear/Instrument"
+        elif d66[1] == 5: item, is_eq = "Golden Needle", True # Moved up
+        else: item, is_eq = "Heavy Armor", True
+
     elif d66[0] == 5:
-        if d66[1] == 2:
+        if d66[1] == 1: item, is_eq = "Formal Clothing", True # Only formal clothing
+        elif d66[1] == 2: 
             num_spells = math.ceil(level / 2)
             item = f"📖 Spellbook ({', '.join(random.sample(SPELLS, num_spells))})"
         elif d66[1] == 3: item, is_eq = "Gold Medallion", True
-        else: item = "Common Clothing or Items"
+        elif d66[1] == 4: item, is_eq = "Occult Trinket", True
+        elif d66[1] == 5: item, is_eq = "Primal Trinket", True
+        else: item = get_gold_result("2d1000", level)
+
     else:
         if d66[1] == 1: item = "📜 Scroll, Protection"
         elif d66[1] == 2: item, is_eq = "Golden Needle", True
+        elif d66[1] == 3: item, is_eq = "Engraved Bracers", True
+        elif d66[1] == 4: item = get_gold_result("5d100", level)
         elif d66[1] == 5: item, is_eq = "Signet Ring", True
-        else: 
-            r = roll('5d10')
-            item = f"💰 **{r * level:,} Gold** ({r} rolled × Lvl {level})"
+        else: item = get_gold_result("2d1000", level)
 
-    # Final Output
+    # Rendering
     st.divider()
     if is_eq:
         pn, pc, cn, cc = get_power_for_level(level)
         st.subheader(f"Found: {item}")
-        st.write(f"**Boon:** {pn} (+{pc:,}g)")
-        if cn:
-            st.warning(f"**Curse:** {cn} ({cc:,}g)")
-        st.info(f"**Value Math:** {pc} + ({cc}) = **{pc+cc:,}g**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(f"**Boon:** {pn}")
+            st.caption(f"Value: +{pc:,}g")
+        with col2:
+            if cn:
+                st.error(f"**Curse:** {cn}")
+                st.caption(f"Value: {cc:,}g")
+            else:
+                st.info("No Curse Applied")
+        st.divider()
+        st.markdown(f"**Final Market Value:** `{pc + cc:,}g` / Budget: `{budget:,}g`")
     else:
         st.subheader(item)
